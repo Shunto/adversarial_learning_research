@@ -1,0 +1,28 @@
+\contentsline {section}{\numberline {第1章}はじめに}{1}% 
+\contentsline {section}{\numberline {第2章}関連研究}{3}% 
+\contentsline {subsection}{\numberline {2.1}Moldovanuによるモデル}{3}% 
+\contentsline {subsection}{\numberline {2.2}遺伝的アルゴリズム}{4}% 
+\contentsline {subsection}{\numberline {2.3}Winner-PayオークションにおけるGAの適用}{7}% 
+\contentsline {subsubsection}{\numberline {2.3.1}モデルと買い手の効用関数}{7}% 
+\contentsline {subsubsection}{\numberline {2.3.2}入札関数の表現}{8}% 
+\contentsline {subsubsection}{\numberline {2.3.3}GAの適用}{9}% 
+\contentsline {subsubsection}{\numberline {2.3.4}本研究との比較}{9}% 
+\contentsline {section}{\numberline {第3章}All-Pay方式のコンテストにおけるGAのモデル化}{10}% 
+\contentsline {subsection}{\numberline {3.1}GAにおける各個体の表現}{10}% 
+\contentsline {subsection}{\numberline {3.2}各個体の初期値}{10}% 
+\contentsline {subsection}{\numberline {3.3}適用するGAアルゴリズム}{12}% 
+\contentsline {subsection}{\numberline {3.4}GAで得られた結果の評価方法}{14}% 
+\contentsline {section}{\numberline {第4章}実験}{15}% 
+\contentsline {subsection}{\numberline {4.1}別の初期値発生方法による比較実験}{15}% 
+\contentsline {subsubsection}{\numberline {4.1.1}ランダムな初期値の場合}{15}% 
+\contentsline {subsubsection}{\numberline {4.1.2}Bydeの研究による初期値の場合}{15}% 
+\contentsline {subsection}{\numberline {4.2}本研究のGAアルゴリズム, また初期値の与え方による戦略}{16}% 
+\contentsline {subsubsection}{\numberline {4.2.1}パラメーターの調整}{16}% 
+\contentsline {subsubsection}{\numberline {4.2.2}GAの適用結果}{16}% 
+\contentsline {subsubsection}{\numberline {4.2.3}バッジが2個の場合の戦略}{16}% 
+\contentsline {section}{\numberline {第5章}考察}{17}% 
+\contentsline {subsection}{\numberline {5.1}比較実験で得られた結果の考察}{17}% 
+\contentsline {subsection}{\numberline {5.2}本研究のGAによって得られた結果の考察}{17}% 
+\contentsline {section}{\numberline {第6章}おわりに}{18}% 
+\contentsline {section}{\hbox to\@tempdima {\hfil }謝辞}{19}% 
+\contentsline {section}{\hbox to\@tempdima {\hfil }参考文献}{19}% 

@@ -1,0 +1,40 @@
+\contentsline {section}{\numberline {Chapter\nobreakspace {}1}Introduction}{1}
+\contentsline {section}{\numberline {Chapter\nobreakspace {}2}Structure of Thesis}{2}
+\contentsline {subsection}{\numberline {2.1}Abstract}{2}
+\contentsline {subsection}{\numberline {2.2}Table of Contents}{2}
+\contentsline {subsection}{\numberline {2.3}Main Text}{2}
+\contentsline {subsubsection}{\numberline {2.3.1}Introduction}{2}
+\contentsline {subsubsection}{\numberline {2.3.2}Main Issue}{3}
+\contentsline {subsubsection}{\numberline {2.3.3}Conclusions}{4}
+\contentsline {subsection}{\numberline {2.4}Appendices}{4}
+\contentsline {section}{\numberline {Chapter\nobreakspace {}3}Instructions on Writing Theses}{6}
+\contentsline {subsection}{\numberline {3.1}Languages}{6}
+\contentsline {subsection}{\numberline {3.2}Symbols and Units}{6}
+\contentsline {subsection}{\numberline {3.3}Figures and Tables}{7}
+\contentsline {subsection}{\numberline {3.4}Footnotes}{7}
+\contentsline {subsection}{\numberline {3.5}Literatures}{8}
+\contentsline {subsection}{\numberline {3.6}Printed Form and Pages}{8}
+\contentsline {subsection}{\numberline {3.7}Cover, Title Page and Table of Contents}{9}
+\contentsline {subsection}{\numberline {3.8}Submission}{9}
+\contentsline {subsection}{\numberline {3.9}Other Suggestions}{9}
+\contentsline {section}{\numberline {Chapter\nobreakspace {}4}Concluding Remarks}{11}
+\contentsline {section}{\hbox to\@tempdima {\hfil }Acknowledgments}{12}
+\startAppendixtoc 
+\contentsline {section}{\hbox to\@tempdima {\hfil }Appendix: How to Use Style File {\tt kuisthesis}}{A-1}
+\contentsline {subsection}{\numberline {A.1}Preliminaries}{A-1}
+\contentsline {subsubsection}{\numberline {A.1.1}Obtaining Thesis Kit}{A-1}
+\contentsline {subsubsection}{\numberline {A.1.2}{\LaTeX } Environment}{A-2}
+\contentsline {subsection}{\numberline {A.2}Configuration of Source File}{A-2}
+\contentsline {subsubsection}{\numberline {A.2.1}Page Format}{A-3}
+\contentsline {subsubsection}{\numberline {A.2.2}Option Styles}{A-3}
+\contentsline {subsubsection}{\numberline {A.2.3}Specifying Title, etc.}{A-4}
+\contentsline {subsubsection}{\numberline {A.2.4}Abstract}{A-5}
+\contentsline {subsubsection}{\numberline {A.2.5}Table of Contents}{A-6}
+\contentsline {subsubsection}{\numberline {A.2.6}Sectioning}{A-6}
+\contentsline {subsubsection}{\numberline {A.2.7}Figures and Tables}{A-6}
+\contentsline {subsubsection}{\numberline {A.2.8}Itemizing}{A-8}
+\contentsline {subsubsection}{\numberline {A.2.9}Footnotes}{A-8}
+\contentsline {subsubsection}{\numberline {A.2.10}Acknowledgments}{A-8}
+\contentsline {subsubsection}{\numberline {A.2.11}Bibliography}{A-8}
+\contentsline {subsubsection}{\numberline {A.2.12}Appendices}{A-8}
+\contentsline {subsection}{\numberline {A.3}Other Suggestions}{A-9}

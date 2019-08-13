@@ -1,0 +1,11 @@
+__pycache__
+*~
+#*#
+#*
+*#
+*.swp
+*.swo
+*.log
+.DS_Store
+/media/images/*
+/frontend/src/assets/images/*

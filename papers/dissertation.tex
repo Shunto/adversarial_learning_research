@@ -1,0 +1,580 @@
+\documentclass{kuisthesis}			% 特別A研究報告書A
+%\documentstyle[master]{kuisthesis}		% 修士論文(和文)
+%\documentstyle[master,english]{kuisthesis}	% 修士論文(英文)
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{comment}
+\usepackage{amsmath}
+\def\LATEX{{\rm (L\kern-.36em\raise.3ex\hbox{\sc a})\TeX}}
+\def\LATex{\iLATEX\small}
+\def\iLATEX#1{L\kern-.36em\raise.3ex\hbox{#1\bf A}\kern-.15em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}
+\def\LATEXe{\ifx\LaTeXe\undefined \LaTeX 2e\else\LaTeXe\fi}
+\def\LATExe{\ifx\LaTeXe\undefined \iLATEX\scriptsize 2e\else\LaTeXe\fi}
+\let\EM\bf
+\def\|{\verb|}
+\def\<{\(\langle\)}
+\def\>{\(\rangle\)}
+\def\CS#1{{\tt\string#1}}
+
+\jtitle[GAを用いたAll-Payオークションにおける均衡戦略の獲得]%	% 和文題目（内容梗概／目次用）
+	{GAを用いたAll-Payオークションにおける均衡戦略の獲得}	% 和文題目
+\etitle{Obtaining an equilibrium strategy for all-pay auctions by using GA}	% 英文題目
+\jauthor{水嶋 舜人}				% 和文著者名
+\eauthor{Shunto MIZUSHIMA}			% 英文著者名
+\supervisor{松原 繁夫 准教授}			% 指導教員名
+\date{平成28年7月25日}				% 提出年月日
+\department{計算機科学コース}				% 修士論文の場合の専攻名
+
+\begin{document}
+\maketitle					% 「とびら」の出力
+
+\begin{jabstract}		
+\begin{comment}		% 和文梗概
+\end{comment}
+コンテストとは, 複数のコンテスト参加者(以下コンテスタント)それぞれが労力を投じて何らかの成果を出し, その成果に応じて褒賞などが与えられる形式であり, 広く利用されている. なおこの時の成果はコンテスタントの能力(技量)と労力によって決定される. コンテストにおいてはコンテスタントが最大限の努力を投じて何らかの成果を出したとしても, それよりも優れた成果を他のコンテスタントが出していれば褒賞は得られない. その一方で少ない労力で出した成果でもそれよりも優れた成果が他になければ褒賞が得られる. よってこれは他者の行動を考慮して, どのように労力を投入すればいいか(以下これを戦略と呼ぶ)を決定するゲーム的状況として見ることが可能である.\par
+\begin{comment}
+バッジシステムに基づくQ\&Aサイトではユーザーの貢献度がコンテスタントの成果に当たり, バッジが褒賞に当たる.\par
+\end{comment}
+一方, この問題を解くにあたって有効なのが, コンテストを広く研究されているAll-Payオークションとみなすことである. All-Payオークションでは, 幾つかの商品に対して買い手が入札し, 入札額に応じて商品が割り当てられ, 買い手は全員商品を得る得ないに関わらず自身の入札額を支払わなければならない. コンテスタントの成果を出すための労力は褒賞が得られる得られないに関わらず取り消すことができないため, これは妥当である.\par
+ここで問題を解くにあたり, コンテストはゲーム的状況にあるため, ゲーム理論において解として扱われる均衡戦略を求めることが必要とされる. 均衡戦略を求める際, 多くの場合では数学的に問題を定式化するために幾つかの仮定をおくことが多いが, 現実的な状況においてはこれらの仮定は成り立たないことが多い. そこでより仮定を緩和した現実的な状況での均衡解を求める上で有効とされるのが遺伝的アルゴリズム(GA)の適用である.\par
+オークション形式にも幾つかの種類が存在し, その中でWinner-PayオークションやDoubleオークションにGAを適用して均衡戦略を求めている研究は存在するが, All-PayオークションへのGAの適用例はほとんどない. 本研究で取り組んだ課題は以下の通りである.
+\begin{itemize}
+\item GAにおける初期集団の戦略の与え方の決定\\
+コンテストにおける均衡戦略では能力の低いコンテスタントも0より大きい労力を投入する必要があるのであるが, 能力の低いコンテスタントはほとんど褒賞を得ることができないため, GAの過程で能力が低い時の戦略に対する有効な情報が得にくいため, 効率的に探索することが難しい. これを解決するために解の探索範囲を多少絞る必要がある. 
+\item GAを適用して得られた戦略の評価\\
+コンテストにおけるコンテスタントの人数や褒賞の数, またその価値の大きさなどを変えたときに, それぞれGAを適用して得られる戦略を評価する手法が必要とされる.
+\end{itemize}\par
+探索範囲に制限を与えない方法, もしくは既存のGAを他のオークションモデルに適用している研究の方法では, このAll-Payオークションのモデル上で均衡解を求めることは難しい. この問題をコンテストにおける均衡戦略の特徴を考慮した戦略を初期集団の戦略とすることで解決する. その特徴とは, コンテストにおいて能力の低いコンテスタントは高いコンテスタントよりも出す労力が少ないということである. これは能力の低いコンテスタントが労力を多く投入して高いコンテスタントと同じような成果を出そうとするとコストが大きくなってしまうためである.\par
+またGAでは大域的な最適解が得られることが保証されない. そこで本研究の目的として, Moldovanuによって既に数学的に定式化されて均衡解が得られているモデルと同じ設定のもとでもGAによって得られる戦略が, その得られている均衡解とどの程度一致するか評価することとする. これは均衡解が求まっていない, 仮定を緩和したより現実的な状況において, GAによって得られた解の議論をそれが可能にするのでないかと考えたためである. 本研究の貢献は以下の通りである.
+\begin{itemize}
+\item GAで効率的な探索を可能にする初期集団の戦略の与え方の提案.\\
+均衡戦略の能力が低いほど投入労力が低くなるという特徴を考慮に入れて初期集団に戦略を与えることで探索範囲を絞りこみ, 効率的な探索を可能にできることを確認した.
+\item GAを適用して得られる戦略の有効性\\
+褒賞の数が一個の時と二個の時におけるコンテスタントの人数が10, 30, 50人の各場合においてGAを適用して得られる戦略の効用を既に得られている均衡戦略による効用と比較し, GAによって得られる戦略の効用との差がわずかであることを示した.
+\end{itemize}
+\begin{comment}
+\item 膨大な解空間におけるGA適用時の効率的な戦略を与える手法の提案.\\
+均衡解を含む空間を網羅する, あらかじめわかっている簡単なユーザーの特徴を表現する関数を離散値にしてランダムに初期値を発生させることで, GAを適用する際, 効率的に解空間を探索できることを示した.
+All-Payオークションとしてのサイト上での能力値を持つユーザーの分布が既知で, バッジを報酬, ユーザーがどれくらい努力するかという努力値を入札額としたモデルの上ではこれをAll-Payオークション型の問題とみなして数学的に解くことができる.  ここで問題を解くというのは, 均衡戦略を求めることである. Moldovanuによって本研究で議論する簡単なモデル上ではSymmetryな均衡戦略が存在することが証明されている. Symmetryな均衡戦略とは全てのユーザーが同じ戦略をとった時に均衡状態になり, 他のどのユーザーがそれ以外の戦略をとっても, 個人の効用を上げることができない戦略のことである. しかし, 実際のサイトでは様々なユーザー, バッジが存在し, もちろんこの均衡戦略は通用しないため, 現実に近い複雑なモデル上では数学的に均衡戦略を求めることが難しいという問題が生じる.\par
+この問題に対して, 本研究では遺伝的アルゴリズム(GA)の適用を考える. GAを使えば, 数学的に定式化せずに適用ができ, その結果を利用して均衡解を得られる可能性がある. 簡単なモデル上でまずGAを適用した結果, すでに得られている均衡解と同じような結果が得られれば, より現実に近いモデルでも数学的に均衡解を求めることは難しくとも, GAを使えば何らかの結果を得ることができ, それが均衡解であるということは保証はされないが, 実際の解を求める上での足がかりを得ることができるのでないかと考えた. 本研究ではその第一歩として, 簡単なモデル上でGAを適用し得られている均衡解と同じような結果が得られるかというところに対して研究を行った. 本研究で取り組んだ課題は以下の通りである.
+\end{comment}
+
+\end{jabstract}
+
+\begin{eabstract}				% 英文梗概
+In the contest, contestants put effort to make their work or something that requires skill and the prizes are allocated to them according to their qualities of work. Contest theory applies to various fields. The qualities of their work depend on their skills and effort. Contestants can't always get the prizes when they put their maximum effort because whether they can get them or not depends on the others's work. On the other hand, even if they put only short amount of effort, they can win when there are no other better work. Hence, the contests is seen as games where each player decides their amount of effort considering the others' actions.\par
+The effective way to solve this problem is taking the contest as an all-pay auction. In the all-pay auction, buyers make bids and goods are allocated to them according to their bids. regardless of if they get goods or not, they all have to pay their bids. In the contest, contestants have to put irrecoverable effort, so they are similar to each other.\par
+To solve this problem, equilibrias which is taken as solutions in game theory are required. Some assumptions are usually made to find them mathematically, but generally those assumptions can't be true in the realistic situtaions. Genetic algorithms(GAs) is effective to find equilibrias in those situations.\par
+There are some types of an auction. A winner-pay auction and a double auction are ones of them and GAs are applied to them to find each equilibria in prior researches. However, there is still no research applying GAs to all-pay auctions. There are following problems.
+\begin{itemize}
+\item To decide what kind of strategies an initial population has when GAs are applied\\
+Low skilled contestants also put effort more than ziro following equilibrium strategy in the contest. They have little chances of winning prizes, so information for deciding their effort with their skills is hardly obtained. The way to narrow searching spaces down is needed to solve this.
+\item Evaluation of strategies through GAs\\
+There some parameters like the number of contestants and prizes and values of prizes. the way to evaluate each strategy through GA when those paremeters are changed is necessary.
+\end{itemize}
+Either GAs with no constraints on the searching space or ones from prior research in which they are already applied to other auction models, don't work  in the model of all-pay auctions. This problem can be approached with some strategies which have a trait of equilibrias in the contest and given to an initial population. In the contest, if low skilled contestants keep making the same amount of effort as high skilled ones, they can't get their efforts' worth because of over dissipation. Due to this reason, the equilibrium strategy is monotonic decreasing function. Taking this fact into account, GAs could be more effective.\\
+GAs don't guarantee that equilibrias are always obtained. In this research, the strategy by GAs is evaluated and checked if it's the same as equilibrias which is already found in the model from Moldovanu's research. This could make it possible to evaluate the strategy obtained by applying GAs to more realistic situations with less assumptions. This is the objective of this research. The contributions of this research are the following.
+\begin{itemize}
+\item The way to allocate strategies to initial individuals to make it possible to search the space effectively.\\
+The lower skilled the contestants are, the less effort they put. The equilibria reflects this fact. It's possible to narrow the searching space down and find the solution effectively by letting initial individuals have the strategies with that trait.
+\item The quality of strategies through GAs\\ 
+There are some occations in which the number of prizes is one or two with 10, 30 or 50 contestants. In each occation, the strategies through GAs are evaluated and compared with the real equilibria and they are prooved to be right.
+\end{itemize}
+
+\begin{comment}
+There are many kinds of Q\&A sites on the Internet nowadays. Stack Overflow is One of the biggest sites like those. On this site, there are a lot of experienced users with adequate knowledge of the information field, and they answer our questions concerned about programming etc. These kind of sites are based on the badge system on which various types of badges are given to the workers according to their contributions.\par
+The problem here is how the users get the badges effectively as possible. Actually, in the model where skill values are allocated to the users, the badges and users' efforts are seen as the rewards and their bids and users' skills distribution is common, the problem can be solved mathematically seeing this model as the all-pay auction. In the all-pay auction, there are some rewards and bidders make their bids to get them. All bidders must pay their bids regardless of they are winners or not and the rewards are allocated to bidders from the top.\par
+In game theory, these problems are solved by finding equilibrium strategy. Moldovanu proved the symmetry equilbria exists in the simple model which is discussed in this research. The symmetric equilibria means that all the participants in the game use the same strategy and all of them can't improve their utilities with any other strategies. But there are many differences between the model and the real sites as in diversity of users and badges. The problem is that the equilibrium strategy can't be applied to it and it's difficult to find equilibrias on more realistic sites.\par
+To approach this problem, the genetic algorithms(GAs) is suggested in this research. GAs could be applied without formalizing mathematically and equilibrium strategies could be found. If a result similar to the equilibrium strategy from Moldovanu's research is obtained throuth a GA process in the simple model, even in more realistic sites, optimal or semi-optimal solution could be found with the similar GA process. Even if it's not the optimal strategy, that might lead to the clues to it or something to discuss. In this research, as the first step, a GA is actually used in the model from Moldovanu's research to see if it really works. There are two problems here.
+\begin{itemize}
+\item To express the problem for a GA\\
+Each individual need to have proper strategy to apply a GA to the problem. The proper probabilities of crossover and mutation and other parameter settings are needed to make GA work.
+\item The effective way of getting strategies to make it possible to search vast space.\\ 
+GAs doesn't work effectively when the search space is too large. The effective way to give the individuals strategies is required.
+\end{itemize}\par
+Even in the simple model, the simple strategies with discrete values couldn't work after the many times of iteration. This could be because of the the too large search space. The required values for equilibrias couldn't be generated that way. It is needed to narrow the space down with some constraints. 
+\begin{itemize}
+\item Formalizeing the problem for a GA with strategies based on skill values and effort values in the contest model\\
+The individuals return the effort values following their strategies with skill values from the distribution and a GA is applied to the problem in the contest. 
+\item The effective way of generating strategies when GA is chosen to search a large solution space.\\ 
+By discretizing some functions which cover the enough space where equilibrias could be included and haves the simple strategies traits of the users, the effective search in a large space could be possible.
+\end{itemize}
+\end{comment}
+\end{eabstract}
+
+\tableofcontents				% 目次の出力
+
+
+\section{はじめに}\label{sec_intro}		% 本文の開始
+コンテストとは褒賞や資源を割り当てる問題であり, Rent-Seeking\cite{art7}や訴訟の問題, 特許における競争, スポーツ大会など多くの場面で応用されている. コンテストでは参加者(以下コンテスタント)が労力を投入して何らかの成果を出しその成果に応じて勝者が決められ, 勝者に褒賞や資源が割り当てられる. 成果はコンテスタントの能力(技量)と労力によって決定される. コンテスタントが褒賞を得られるかどうかは, 他のコンテスタントの成果に依存する. そのため, 各コンテスタントが他者の行動を考慮して, どのように投入労力を決定すれば,(以下これを戦略と呼ぶ) それに見合った褒賞を得られるかという問題があり, これを解くにあたりコンテストをAll-Payオークションとしてみなすことが有効である.\par
+All-Payオークション\cite{art5}とは, 勝敗に関わらず参加者全員が自身の入札額を支払うオークション方式である. コンテストにおいてもコンテスタントは褒賞を得られても 得られなくても成果のために払った労力を取り消すことはできない. これがコンテストをAll-Payオークションとみなすことができる理由である.\par
+\begin{comment}
+またコンテストでの参加者の勝つ確率が参加者全体の合計のコストのうちのその参加者が出したコストの占める割合になるものはTullock型\cite{art7}と呼ばれ, それに対してAll-Payオークションでは一番出したコストが高かったものが必ず勝つ方式となっている.\par
+\end{comment}
+上記の問題を解くにあたり, コンテストはゲーム的状況にあるため, ゲーム理論における解とされる均衡解を求めることが必要とされる. 均衡解とはゲームにおける各プレイヤーの最適戦略の組であり, この時どのプレイヤーも自身の取る戦略を他のどの戦略に変更しても自身の効用を上げることができない. コンテストのモデルにおいてはコンテスタントの均衡戦略が数学的に求めれている. しかし, それらの均衡戦略を数学的に定式化するために幾つかの仮定をおいていて, それらは実際の状況では成り立たないことが多い. 数学的に定式化することが困難なより現実的なモデル上で, 均衡戦略を求める際に有効とされているのが進化的アルゴリズム(GA)である.\par
+GAはHollandらによって考案されたアルゴリズムであり,\cite{art1} bottom-up的な解探索手法で, 数学的に定式化できないような問題も扱うことが可能である. 実際に多くの研究でオークションでの戦略やメカニズムの最適化に遺伝的アルゴリズムが使われている. GAをAll-Payオークションに適用した例はないが, 他の形式のオークションに適用した研究は既に存在する. 例えば, 売り手と買い手が複数存在するDoubleオークションにおいて, 買い手と売り手がどれくらいの割合で自身の理想額を提示するかというパラメーターの決定にGAが適用されている研究がある.\cite{art9} このパラメーターによってDoubleオークションにおける最適なメカニズムを決定するのである. また他にもWinner-Payオークション(\cite{art6})における各ルール, 条件間での買い手の戦略に対してGAを適用して買い手の均衡解を求め, その買い手の戦略からそれぞれのオークションルールにおける全体の効用を比較し, どのオークションルールが最良であるかを決定している研究もある.(\cite{art4}, \cite{art8}, \cite{art9})\par
+GAでは何らかの解は得られるがそれが大域的最適解であることは保証されない. そこで本研究では既に均衡解が得られているコンテストモデルでGAを適用し, GAによって得られる戦略が既に得られている均衡戦略とどの程度一致するかを評価することとした. これによって数学的に均衡解が求めることができない仮定を緩和した状況で, GAによって得られた解の議論を可能になるのではないかと考えたからである. これが本研究の目的となる.\par
+Moldovanuはコンテストでどのように複数の褒賞の価値を割り当てればいいかという研究を行っており, その中でコンテストにおけるSymmetricな均衡戦略を示している.\cite{art2} ゲーム理論で均衡戦略は一般に複数のプレイヤーによる複数の戦略の組み合わせが考えられるが, それに対してSymmetricな均衡戦略とは, 均衡になっている状態の全てのプレイヤーが同じ戦略をとっている状態の戦略のことである. 本研究ではこのMoldovanuらが扱っているコンテストモデルを扱い, その論文で得られている均衡戦略とGAで得られた戦略の比較を行った.\par
+またコンテストにおける均衡戦略としては能力の低いコンテスタントも0より大きい労力を投入する必要があるのであるが, 能力の低いコンテスタントはほとんど褒賞を得ることができないため, GAの過程でどのような戦略をとるかという情報が得られにくいと考えられる. よって探索範囲に制限を与えずに単純にGAを適用する方法や, 上述のGAを他のオークションモデルに適用している研究の既存の方法では, All-Payオークションのモデル上で均衡解を求めることは困難である. この問題をコンテストにおける均衡戦略の特徴を考慮した戦略を初期集団の戦略としてもたせて探索範囲を絞ることで解決できるのではないかと考えた. コンテストにおいて能力の低いコンテスタントが高いコンテスタントと同じような成果を出そうとして労力を投入すれば, 当然能力の高いコンテスタントに比べて投入する労力は大きくなり, コストが大きくかかってしまう. よってコンテスタントの均衡戦略は能力の低いときほど投入労力が減少する. この戦略の特徴を初期集団の戦略に反映させることで効率的なGAの解探索を可能にした.\par
+なお本研究ではこのコンテストモデルの対象を近年インターネット上でよく見られるバッジシステムに基づくQ\&Aサイトとした. このサイト上では専門的な知識, 経験を持つユーザーが登録していて多岐にわたる専門的な疑問が解決されている. そしてユーザーの投入労力による貢献度に応じて様々なバッジが与えられる. この時各ユーザーのバッジを得るためのコストはユーザーの能力(知識, 経験)と投入する労力によって決まる. ここでの問題として各ユーザーがどのように労力を投入すれば, 自身のコストに見合った, バッジという形の利益を得られるかという問題が生じる. ユーザーの貢献度をコンテストにおける成果, バッジを褒賞としてみれば, この問題はコンテストのモデル上の問題としてみなすことができる. 本文では以降コンテスタントをユーザー, 褒賞をバッジとみて説明等を行う.\par
+\ref{sec_relatedresearch}では関連研究として, Moldovanuの示したSymmetricな均衡戦略と, 遺伝的アルゴリズム(GA), そしてWinner-PayオークションにおけるGA適用例を紹介する. \ref{sec_model}ではどのようにGAを適用するかという表現の方法を述べ, \ref{sec_experiment}では実際にそれに沿って実験を行い, GAを通して得られた戦略を評価する. \ref{sec_analysis}で得られた結果に対して考察を行い, そして\ref{sec_conclusion}でまとめを述べて本稿を締めくくることとする.
+\section{関連研究}\label{sec_relatedresearch}
+\subsection{Moldovanuによるモデル}\label{subsec_moldovanu}
+ここではまずMoldovanuによるモデルに即した, バッジシステムに基づくQ\&Aサイト上におけるユーザーのモデルについて説明する. コンテストにおけるコンテスタントをユーザー, コンテスタントの出す労力をユーザーがそこでどの程度努力するかという努力値, コンテスタントの能力をユーザーの能力, 褒賞をバッジとしてそれぞれ当てることで扱うモデルをコンテストのモデルで形式化できる. そこではp個のバッジが存在し, それぞれ$V_{1}\sim V_{p}$で与えられるとしている. ここでは$V_{1}\geq$ $V_{2}$ ... $\geq$ $V_{p}\geq 0$であり, また$\sum^{p}_{1}V_{i}=1$である. ユーザーの人数はk人とする. この時k$\geq$pである. ユーザーはそれぞれ既知であるユーザーの能力値分布から割り当てられた能力値に従い, それぞれの努力値を決定する. 能力値は[m,1]の範囲とし, m$>$0とする. これはmが0である時に努力値が無限に大きくなってしまうことを避けるためである. ここではこの能力値で設定した場合にmに近いほどユーザーの能力値は高く, 1に近いほど能力値は低いということを気をつけておきたい. また能力値分布の関数をFとするとFの確率密度関数F'は正であるものと仮定する. 一回のコンテストごとにユーザーiの能力値$s_{i}$, 努力値$x_{i}$を決定し, この時のユーザーiの実際のコストは$s_{i}g(x_{i})$として与えられる. gはコスト関数であり, g(0)=0で増加関数である. 各コンテストごとに努力値が上位のユーザーk人にバッジが与えられる. 一位のユーザーには$V_{1}$, 二位のユーザーには$V_{2}$とバッジが順に割り当てられ, k位のユーザーには$V_{k}$が与えられる. つまり一回のコンテストでのユーザーiの効用はユーザーがバッジ$V_{j}$を得ることができれば$V_{j}$-$s_{i}g(x_{i})$であり, バッジを得ることができなければ-$s_{i}g(x_{i})$で与えられる.\par
+ 全てのユーザーはそれぞれ得られる効用の期待値を最大にするように努力値を決定する. この時, ユーザーがどのくらい努力値を出せば良いかという均衡戦略が存在する. 本研究の実験ではバッジの数が一個の時と二個の時を扱うため, コスト関数が線形でg(x)=xである時のMoldovanuの論文で示されている式を示す. 一個の時は式(\ref{optimal_strategy})であり, 二個の時は式(\ref{badge2_optimal})で示される. (以下式(\ref{optimal_strategy})(\ref{badge2_optimal})(\ref{eq_B})(\ref{eq_C})の証明はMoldovanuの論文\cite{art2}参照)
+\begin{comment}
+\begin{eqnarray}
+&&
+\label{optimal_strategy}
+a(b) = \sum_{k=1}^{q}A_{k}(b)V_{k}\\
+&&
+ A_{k}(b)= \nonumber \\
+&&
+\label{optimal_strategy_A}
+ {}_{n-1}C_{k-1}\int^{1}_{y}{1\over{t}}F(t)^{k-2}(1-F(t))^{n-k-1}[(n-1)F(t)-(k-1)]F'(t)dt 
+\end{eqnarray}
+\end{comment}
+\begin{eqnarray}
+&&
+a(b) = B(b)V_{1}\label{optimal_strategy}\\
+&&
+a(b) = B(b)V_{1}+C(b)V_{2}\label{badge2_optimal}\\
+&&
+B(b) = (k-1)\int^{1}_{b}{1\over{t}}(1-F(t))^{k-2}F'(t)dt\label{eq_B}\\
+&&
+C(b) = (k-1)\int^{1}_{b}{1\over{t}}(1-F(t))^{k-3}[(k-1)F(t)-1)]F'(t)dt
+\label{eq_C}
+\end{eqnarray}
+\subsection{遺伝的アルゴリズム}\label{subsec-geneticAlgorithm}
+遺伝的アルゴリズム(以下GA)とは最適化問題に適用される進化的アルゴリズムであり, 生物の進化に基づいている. 幾つかのデータを染色体とみて, それらに対して, 選択, 交叉, 突然変異という操作を繰り返すことで, 最適解, もしくは準最適解を得ることができる. ただしこの時大域的最適解が得られるという保証はない.\par
+一般にGAでの染色体は対立遺伝子0と1を持ったビット列として表現されることが多い. 例えば8ビットでは0と1を用いて以下のように表現する. 
+\begin{table}[h]
+  \begin{center}
+    \begin{tabular}{|c|c|c|c|c|c|c|c|} \hline
+      1 & 1 & 0 & 0 & 0 & 0 & 1 & 1 \tabularnewline \hline
+    \end{tabular}
+  \end{center}
+\end{table}
+以下でGAの過程で適用される各操作を説明する. また以後上記で説明した染色体のことを個体と呼ぶことにする.
+\begin{itemize}
+\item 選択\\
+各個体の適合度に応じて次の世代の子孫を作るため, 交叉, 突然変異といった操作を適用する個体を決定する. 適合度が高い個体ほど選ばれる可能性がもちろん高くなる. 主な選択方式としては以下のようなものがある.
+\begin{enumerate}
+\item ルーレット方式\\
+個体の選択される確率が個体全体の適合度の合計の中でその個体の占める適合度によって決まる方式. 個体の適合度をルーレットの占める割合と見れば, 個体の選択はルーレットで玉を転がすのと同じように考えられる. 全ての個体に選択される可能性が与えられるが, 他の2つの方式に比べると, 適合度の高い個体の選択される確率が高く, 多様性が失われやすい. またGAの初期段階で数体の適合度が圧倒的に高い個体が現れると, ほとんどそれらだけが選択されてしまい偏りが生まれたり, 解探索が十分でない状態で収束してしまう恐れもある.
+\item ランキング方式\\
+全個体に適合度で順位をつけて, 個体の選択される確率をその順位によって割り当てる方式. 順位からその個体の確率を決める関数が重要となる. ルーレット方式と比べて圧倒的に適合度の高い1体の個体による影響が少なくなり, 不十分な状態での収束も防ぐことができる. ただし, 順位をつけてソートするため時間はかかる.
+\item トーナメント方式\\
+集団の中からn(トーナメントサイズと呼ばれる.)体の個体をランダムに選び, その中で一番適合度の高い個体を選択するというプロセスを集団の数だけ行う方式である. 全ての個体に選択される可能性があり多様性を確保できる. トーナメントサイズが大きければそれだけ多様性は失われる. 逆に小さければ収束の速さが遅くなるのと引き換えに多様性はそれだけ確保できる. なおトーナメントサイズはn=2であることが多い.
+\item エリート主義\\
+集団の中から適合度が一番高いものを数体そのまま次の子孫として, 残りの枠に対して従来の選択方式を適用する方法. 必ず適合度が一番だったものが次の世代にも引き継がれる. 適合度が最大のものをGAの過程で失わないため, GAのパフォーマンスが高くなる.
+\end{enumerate}
+なお巡回セールズマン問題にGAを適用してエリート主義以外の上記各選択方法での性能を比べたところ, ルーレット方式とランキング方式に比べてトーナメント方式が優れているという結果が得られている.(\cite{art3}) 本研究では全体の数の5\%に対してエリート主義を採用して, 残りの95\%に対してトーナメント方式を適用し, 交差, 突然変異の対象とした. 
+\item 交叉\\
+一定の確率で選択された後の個体に適用される. 二つの個体においてビット列を部分的に交換し, 新しい二つの子孫を作る. 下の例は一点交叉である. 複数の部分を交換する交叉方法もある. 下の例は8ビットのうち最後のに対して交叉を行っている.
+\begin{table}[h]
+  \begin{minipage}[t]{.5\textwidth}
+    \begin{center}
+      \begin{tabular}{|c|c|c|c|c|c|c|c|} \hline
+        1 & 1 & 0 & 0 & 1 & 1 & $\underline{0}$ & $\underline{0}$  \tabularnewline \hline
+      \end{tabular}
+    \end{center}
+  \end{minipage}  
+\hfill
+  \begin{minipage}[t]{.5\textwidth}
+    \begin{center}
+      \begin{tabular}{|c|c|c|c|c|c|c|c|} \hline
+        1 & 1 & 0 & 0 & 0 & 0 & $\underline{1}$ & $\underline{1}$  \tabularnewline \hline
+      \end{tabular}
+    \end{center}
+  \end{minipage}  
+\end{table}
+\begin{center}
+  \begin{math}
+    \Downarrow \nonumber
+  \end{math}
+\end{center}
+\begin{table}[h]
+  \begin{minipage}[t]{.5\textwidth}
+    \begin{center}
+      \begin{tabular}{|c|c|c|c|c|c|c|c|} \hline
+        1 & 1 & 0 & 0 & 1 & 1 & 1 & 1 \tabularnewline \hline
+      \end{tabular}
+    \end{center}
+  \end{minipage}  
+\hfill
+  \begin{minipage}[t]{.5\textwidth}
+    \begin{center}
+      \begin{tabular}{|c|c|c|c|c|c|c|c|} \hline
+        1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 \tabularnewline \hline
+      \end{tabular}
+    \end{center}
+  \end{minipage}  
+\end{table}
+\item 突然変異\\
+交叉同様, 一定の確率で選択された後の個体に適用される. 一つの個体のビット列の遺伝子をランダムに選択し, そのビット列を変化させる. 一点のだけの場合もあれば, 複数突然変異させる方法もある. 下の例では個体の3ビット目に突然変異を適用している. GAにおいて突然変異は基本確率が大きいと単純にランダムに値を発生させているだけになって意味がないので, 基本的には交叉確率の方が突然変異の確率より高く, 突然変異の確率は低く設定されることが多い.
+\begin{table}[h]
+    \begin{center}
+      \begin{tabular}{|c|c|c|c|c|c|c|c|} \hline
+        1 & 1 & $\underline{0}$ & 0 & 0 & 0 & 1 & 1 \tabularnewline \hline 
+      \end{tabular}
+    \end{center}
+\end{table}
+\begin{center}
+  \begin{math}
+    \Downarrow 
+  \end{math}
+\end{center}
+\begin{table}[h]
+    \begin{center}
+      \begin{tabular}{|c|c|c|c|c|c|c|c|} \hline
+        1 & 1 & 1 & 0 & 0 & 0 & 1 & 1 \tabularnewline \hline
+      \end{tabular}
+    \end{center}
+\end{table}
+\end{itemize}
+なお本研究では扱わないがこれらの交叉, 突然変異の確率を一定にするのではなく, その確率まで含めて個体の戦略に持たせて変化させる方法も研究されている.
+\subsection{Winner-PayオークションにおけるGAの適用}\label{subsec_winner_pay}
+\subsubsection{モデルと買い手の効用関数}
+ここでは本研究の新規な部分, また本研究で共通している部分をはっきりさせるためにも実際にWinner-PayオークションにGAを適用した例であるAndrew Bydeによる研究を紹介する. Winner-PayオークションとAll-Payオークションの違いについてはすでに説明したとおりであるが, Winner-Payオークションの中でもメカニズムは一つではない. 代表的なものに第一価格秘密入札と第二価格秘密入札がある. 両者のメカニズムの違いはどちらもある売り手の商品に対して買い手が入札額を決定し, 入札額の一番高かったものに商品が割り当てられるが, 第一価格秘密入札では, 割り当てらた買い手はその買い手自身が入札した額を支払うのに対して, 第二価格秘密入札では, 買い手が払う額は買い手自身が入札した額ではなくそのオークションで二番目に高い入札額を出した買い手の入札額を払う. Bydeはこの二つを含むメカニズム間で買い手の戦略に対してGAを適用して, それぞれ得られる全体の効用からどのメカニズムが優れているのかを比較した. なお彼の研究ではrisk-averse, risk-seeking, risk-neutralの三種類のタイプの買い手を想定している. risk-averseな買い手はリスクを冒すことを好まない買い手であり, 反対にrisk-seekingはリスクを冒すことを好む買い手のことである. risk-neutralである買い手はその買い手がどちらでもないことを示す. これらの買い手の違いはVon Neumann-Morgensternの効用関数$u_{\alpha}(x)$, 式(\ref{winner_pay_u(x)})によって区別される.
+\begin{eqnarray}
+ u_{\alpha}(x)=
+ \begin{cases}
+   \frac{1}{\alpha}(e^{\alpha x}-1) & (\alpha\not= 0)\\
+   x & (\alpha = 0)\\
+ \end{cases}
+ \label{winner_pay_u(x)}
+\end{eqnarray}
+$\alpha$=-1, 0, 1で-1はrisk-averseの買い手, 1はrisk-seekingの買い手, 0はrisk-neutralの買い手である.\par
+Bydeはw-priceオークションメカニズム間の探索を行った. w-priceオークションでは買い手がN人存在し, それぞれのオークションではその中から決められた数(n以上)がランダムに選ばれ, オークションに参加する. この参加人数は決められた範囲(n以上からある上限)から一様分布によりランダムに取り出される. またオークション時のそれぞれの入札額を高い方から$x_{1}, x_{2}...x_{n}$, そして$w=(w_{1},w_{2}...w_{N})$とした時に一番入札額の高かった買い手が払う額を式(\ref{payment_formula})で与えている.
+\begin{eqnarray}
+&&
+P=\frac{\sum_{k=1}^{n}w_{k}x_{k}}{\sum_{k=1}^{n}w_{k}}
+\label{payment_formula}
+\end{eqnarray}
+この研究では特に$w=(1-w_{2}, w_{2})$の時を行い, $w_{2}=0$の時はそれは第一価格秘密入札であることを指し, $w_{2}=1$の時は第二価格秘密入札であることを指す.\par
+この研究では商品に個人的な価値と一般的な価値を導入している. n人それぞれの買い手にとっての個人的な商品の価値を$t_{1}, t_{2}...t_{N}$とし, これは確率分布からそれぞれの買い手に割り当てられる. この時, 買い手$b_{1}\sim b_{N}$の中の$b_{i}$に対する真の商品の価値は$d{(\sum_{j}t_{j})\over{N}}+(1-d)t_{i}$で与えられる. パラメーターdによってどのくらい買い手の個人的な価値と一般の価値が互いに影響するのかを調節できる. \par
+このような条件で買い手$b_{i}$の入札額を式(\ref{payment_formula})とした時, $b_{i}$の効用は式(\ref{winner_pay_utility})で与えられる.
+\begin{eqnarray}
+&&
+u_{\alpha}(d{(\sum_{j}v_{j})\over{n}}+(1-d)v_{i}-P)
+\label{winner_pay_utility}
+\end{eqnarray}
+\subsubsection{入札関数の表現}
+GAにおける各個体は離散値$(g_{1}, g_{2} ... g_{k})$を持つ. これらには(0, $\frac{1}{k}$, ..., 1)の範囲の値がランダムに割り当てられる. 買い手$b_{i}$の入札関数は式(\ref{winner_pay_bid_function})で作られる.
+\begin{eqnarray}
+bid(t)=
+ \begin{cases}
+   g_{1} & (t<0)\\
+   g_{t}+(kt-l)(g_{t+1}-g_{t}) & (t\in[l/k, (l+1)/k)\\
+   g_{k+1} & (t\geq1)\\
+ \end{cases}
+\label{winner_pay_bid_function}
+\end{eqnarray}
+これらの離散値$g_{i}$を個体の遺伝子として交叉, 突然変異などを適用している.
+\subsubsection{GAの適用}
+この研究での適用するGAアルゴリズムは以下である.
+\begin{itemize}
+\item 初期集団生成\\
+各個体の$(g_{1},g_{2}...g_{k})$に(0, $\frac{1}{k}$, ..., 1)の範囲の値をランダムに割り当てる.
+\item 選択\\
+ランキング方式の選択を行う. 
+\item 交叉\\
+個体全体を二対ずつのペアにして, 各個体のペアに対して100\%の確率で一点交叉を適用する.
+\item 突然変異\\
+各個体に一定の80\%の確率でランダムな点に対して突然変異を適用する. 突然変異の範囲は回数が進むにつれて減少するように設定している.
+\item 適合度評価\\
+適合度評価は基本的にWinner-Payコンテストを数回繰り返し, その後の個体の合計の効用を適合度としている.
+\begin{enumerate}
+\item 全ての個体N体からまだコンテストに参加していない個体をn体ランダムに選択する.(nは毎回ランダムに決められた範囲の数から割り当てられる)
+\item 一様分布から信号$t_{i}$をランダムに発生させて, それぞれの個体$b_{i}$にそれを割り当てる.
+\item それぞれの個体$b_{i}$の入札関数に変数を代入して, 入札額$x_{i}$を得る. 最大の入札額$x_{max}$となった個体$b_{max}$を記録しておく.
+\item 入札額最大の個体$b_{max}$の適合度を式(\ref{winner_pay_utility})にしたがって加算する.
+\item 1$\sim$4の手順をすべての買い手が参加するまで繰り返す.
+\item 1$\sim$5を数回繰り返す.
+\end{enumerate}
+\end{itemize}
+\subsubsection{本研究との比較}\label{compare_research}
+このBydeのWinner-Payオークションのモデルと本研究とのモデルの違いを示す. コンテストを行うことで個体を評価し, 適合度の高い個体に交叉, 突然変異を適用するところの大まかな流れは本研究でもそのままほとんど同じである. しかし, Q\&Aサイトのモデルでは, 買い手をQ\&Aサイトにおけるユーザー, 入札額を努力値, 入札関数をユーザーの戦略, 商品をバッジと見てそのまま適用することはできない. その理由になる違いとして, 細かな違いとしては, Winner-PayとAll-Payでそもそも違うが, 他にもMoldovanuのモデルではrisk-neutralのユーザーだけに仮定していること, 商品に対する個人的な価値を導入していないことなどが挙げられる. 大きな違いとしてはBydeのモデルでは商品に対する個人的な価値を確率分布から割り当てるが, Q\&Aサイトにおけるユーザーは能力値を持つと仮定するため, 能力値を確率分布から割り当てる点である. よって式(\ref{winner_pay_utility})の効用関数は式(\ref{optimal_strategy})の効用関数と大きく異なる. また初期値の割り当て方も本研究のMoldovanuのモデルの上でのGAにおける戦略表現の上では上手くいかないと考えられる. これは\ref{sec_experiment}で確かめるが, 探索範囲が膨大である上に, 能力値の低いユーザーはほとんど勝てないため戦略について有用な情報が得られないためである. これが本研究のモデルでの均衡解の探索で解決されるべき難点となる. これに対して, 本研究で提案する\ref{initial_strategy}節で説明するような方法で初期値を発生させれば, この問題を解決できると考えられる. \par
+\section{All-Pay方式のコンテストにおけるGAのモデル化}\label{sec_model}
+\subsection{GAにおける各個体の表現}
+コンテストにおける各ユーザーをGAにおけるそれぞれの染色体, つまり各個体とする. 各個体は与えられた自身の能力値に従って, 自身の努力値を決定する. これが各個体の戦略となる. 今回の実験では, 能力値は0.5から1.0の範囲としている. 各個体の戦略は0.5から1.0の間を0.005間隔に区切り, それぞれの区間における努力値で表現される. つまり各個体は離散値として100個の値を持つ.(この100の離散値は, Bydeの研究では式(\ref{winner_pay_utility})のkに対応する) これらの個体が実際にコンテストを行うことで各自の効用を得るので, それを適合度評価関数に反映する. GAを適用し, 各個体の適合度を実際に評価して最終的にコンテストモデルでの均衡戦略を得ることを目的とする.
+\subsection{各個体の初期値}\label{initial_strategy}
+ここでは本研究の貢献となる各個体の区間ごとに返す努力値の与え方を説明する. 与え方は様々に考えられる. 単純に一定の範囲の区間からランダムに離散値を発生させる方法や, またBydeの研究のようにその努力値の区間をk個の数で区切り, それをランダムに割りあてる方法もある. これらの方法は実際に\ref{random_experiment}節と\ref{andrew_experiment}節で説明する. しかし, 本研究で個体の戦略の努力値は離散値であるため, 何も条件なしでランダムに与えると探索区間は膨大になり, その一方で能力の低いユーザーの時の戦略の情報が得られにくいため, とても現実的な実行時間では求まらかった. 代わりにユーザーの均衡戦略が能力値の低い時ほど低い努力値を出すという特徴を反映した単調減少の関数(\ref{eq_fx})を離散化したものを初期値とする方法を提案する. これはコンテストにおけるコンテスタントのもつ戦略の特徴を考えれば理に適っている. コンテストにおいては能力値の低いコンテスタントが勝つ確率を上げるために能力値の高いコンテスタントと同じように高めの努力値を出そうとすれば, コストがそれだけ大きくなってしまい, それを繰り返していけば最終的に損失と被ることになる. よってコンテスタントの均衡戦略は必ず単調減少の戦略となる. 
+\begin{equation}
+f(x)=\frac{b}{x^{a}}\label{eq_fx}
+\end{equation}
+各区間の能力値の中央値をxとして関数(\ref{eq_fx})に代入し, 求まった値がその区間での努力値となる. 例としてb=2, a=80の時(式(\ref{eq_fx_ex}))のグラフ(下図\ref{graph_fx_ex})と, それを離散化して戦略としたもの(下図\ref{strategy})を挙げる.
+\begin{equation}
+f(x)=\frac{2}{x^{80}}\label{eq_fx_ex}
+\end{equation}
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{figures/fx_strategy_ex.png}
+    \caption{関数(\ref{eq_fx_ex})のグラフ}\label{graph_fx_ex}
+    \includegraphics[width=\textwidth]{figures/discretized_strategy_ex.png}
+    \caption{戦略(離散化後)}\label{strategy}
+\end{figure}
+このように関数(\ref{eq_fx})の変数, aとbをランダムに決定した複数の関数の中からそれらを離散値にして戦略を与えれば, 均衡解を含む探索範囲を十分に含むことができると考えられる. また, それと同時に膨大な探索区間のうち完全に求めたい解とは無関係の部分の探索を省略することもでき, GAにおける探索が効率的になると考えられる. それがこのようにして初期値を与えている理由である. ここで注意しておきたいのは関数の選択はあくまで膨大な解空間を減らすと同時に均衡解を含む必要な探索空間を効率的に探索するために行ってるのであり, 解が存在する範囲を十分に含んでいる単調減少のものならばどんな関数でも構わない.\par
+図\ref{graph_moldovanu}はMoldovanuの研究から導かれるSymmetryな均衡解である. コンテストの参加人数nが小さい時の方がユーザー一人の勝つ確率が増えるため, ユーザーの戦略の出す努力値が増えている.\par
+図\ref{graph_fx}は関数(\ref{eq_fx})におけるパラメータaを変化させた時のグラフである. aを変化させることにより, 関数\ref{eq_fx}は探索空間として十分な範囲を表すことができると考えられる. 
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{figures/moldovanu_formulas.png}
+    \caption{Moldovanuによる戦略}\label{graph_moldovanu}
+    \includegraphics[width=\textwidth]{figures/graph_function.png}
+    \caption{式(\ref{eq_fx})におけるaを変化させた時のグラフ}\label{graph_fx}
+\end{figure}
+本研究では1.5$\leq$b$\leq$2.5, 5$\leq$a$\leq$600とした. bとaをこの値の範囲に設定した理由は, 初期集団の発生における戦略の範囲が均衡解を含むようにするためである. aの範囲を多く取ると関数(\ref{eq_fx})は指数関数的に減少するため, aの値をランダムで発生させた時に初期集団の時点で努力値を小さく出す戦略ばかりに偏ってしまい効率も悪くなるため上記の範囲で設定した.
+\subsection{適用するGAアルゴリズム}\label{ga_algorithm}
+\begin{itemize}
+\item 初期集団生成\\
+今回の実験では関数(\ref{eq_fx})の変数b,aをそれぞれn体分, 上記の理由より1.5$\leq$b$\leq$2.5, 5$\leq$a$\leq$600の間でランダムに発生させて, その関数を離散化し, それぞれの戦略を持った各個体N=600体を生成することとした.
+\item 選択\\
+個体の選択をアルゴリズムとしては幾つかの種類があるが, ここではトーナメント式のアルゴリズムを適用している. 個体全体から二体の個体をランダムに選択し, その中で一番適合度が高いものは次の交叉, 突然変異を適用する個体として残される. この操作を次に残す個体全体分の数, N=600回分行う.
+\item 交叉\\
+個体全体を二体ずつのペアにして, 各個体のペアに対して一定の確率で, 一点交叉を適用する. 二点以上の交叉は単調減少の戦略を保てなくなり, 解探索の効率を下げるため行わない. しかし, 一点交叉でも単純に行っただけでは単調減少でない戦略も発生しうる. 単調減少同士の戦略が一点交叉を行う場合, 二つの個体が交差していてかつその交差点で一点交叉が起これば, 交叉後の個体の戦略は両方とも単調減少を保つことができる. しかし, 多く場合はそうでない. 交叉後の個体の片方が単調減少を保つ一方で, もう片方はそうでなくなってしまう. 探索を単調減少の戦略に絞るため, 単調減少が保てなくなった片方の個体の戦略は交叉を行う前のどちらかの個体の戦略をランダムに選びそのまま引き継がせるようにした. これにより交叉後も単調減少の戦略を保つことが可能である.
+\item 突然変異\\
+各個体に一定の確率でランダムな幾つかの点に対して突然変異を適用する. オークションにGAを適用した他の研究(\cite{art4}, \cite{art9})にも見られるように, ここでは突然変異の適用確率は一定であるが突然変異の値の変化率を導入して時間が経つごとに変化率を下げていくようにする. これは初期の状態では値の多様性を保つために変化率を大きくして徐々に収束してくると大きな変化はあまり意味がなく, 効率的ではないからである. 変化率にはいろいろな方法があると考えられるがここでBydeの研究で使われている変化率を参考にした. 突然変異の変化率を$\mu$, 何世代目かをG, そして最初の突然変化率を$\mu_{initial}$とすると, $\mu=\mu_{initial}(\frac{1000}{1000+G})^{1.5}$としている. 突然変異させる上限値$\dot{e}_{max}$と下限値$\dot{e}_{min}$をそれぞれ決めるのであるが, ここでユーザーの戦略は単調減少になるということを利用できる. 選ばれた点の努力値をeとした時にはe(1-$\mu$)をあらかじめ$\dot{e}_{min}$とし, e(1+$\mu$)を$\dot{e}_{max}$とする. その後選ばれた一点の両隣の値をc,d(c$\leq$d)として, e(1-$\mu$)$<$cならば$\dot{e}_{min}$=c, d$<$e(1+$\mu$)ならば$\dot{e}_{max}$=dとする. つまり変化率によって決まった上限, 下限の範囲それぞれにおいて, 単調減少を保持できる範囲(c以上d以下)よりも大きくなるならば, その時のそれぞれ範囲はc以上もしくはd以下と制限される. こうすることで解探索を単調減少のものに絞りより探索が効率的にあると考えられる. Bydeの研究と違い, ユーザーが能力値を持つと仮定しているがためにこのようにすることができる.
+\begin{comment}
+\item 突然変異\\
+各個体に一定の確率でランダムな幾つかの点に対して突然変異を適用する. オークションにGAを適用した他の研究(\cite{art4}, \cite{art9})にも見られるように本研究でも突然変異の適用確率は一定であるが突然変異の値の変化率を導入して時間が経つごとに変化率を指数関数的に下げていくようにする. これは初期の状態では値の多様性を保つために変化率を大きくして徐々に収束してくると大きな変化はあまり意味がなく, 効率的ではないからである. 変化率にはいろいろな方法があると考えられるがここでは突然変異の変化率を$\mu$, 何世代目かをg, そして最初の突然変化率を$\mu_{initial}$とすると, $\mu=\mu_{initial}^{g*0.2}$としている. 範囲は選ばれた点の努力値をeとした時にe(1-$\mu$)以上e(1+$\mu$)以下にして行う. 実験では$\mu_{initial}$を0.5とした.
+\item 突然変異\\
+\end{comment}
+\item 適合度評価\\
+ここでは各個体を評価し適合度を決める時の方法を示す. 各個体の評価の方法はGAを適用する上でとても重要な部分である. 異なるユーザー同士で実際にコンテストを数回繰り返し, その後のユーザーの合計の効用を適合度とする. それに沿った評価の方法のアルゴリズムは以下になる.
+\begin{enumerate}
+\item 全ての個体N体$u_{1}\sim u_{N}$の適合度を0とする.
+\item 個体の中からコンテストに参加するn体をN体のうち, まだ参加していない個体の中からランダムに選ぶ. 3$\sim$6は選ばれたn体に対して行われる.
+\item 一様分布から能力値$s_{i}$を0.5から1.0の範囲でランダムに発生させて, それぞれの個体$u_{i}$にそれを割り当てる.
+\item それぞれの個体$u_{i}$の戦略に変数を代入して, 努力値$x_{i}$を得る. 最大の努力値$x_{max}$となった個体$u_{max}$を記録しておく. 能力値に努力値を乗算した値$s_{i}x_{i}$をそれぞれの個体値の適合度から減算する.
+\item 努力値最大の個体$w_{max}$の適合度に1を加算する.
+\item 個体N体が全て評価されていなければ, 2に戻る.
+\item 2$\sim$6の手順を数回繰り返す.
+\item
+\end{enumerate}
+\item 終了条件\\
+終了条件としては繰り返す回数が500回になった時とした. これはこの時には全ての個体はほとんど収束しているからである. ここでの収束というのは最後の集団の個体の戦略を全て一つのグラフにした時にほとんどすべて重なり, また平均適合度の変化がそれ以降は大きく変化しない状態を言っている. 実際の実験での適合度変化の様子は\ref{ga_result_1}節の図\ref{fitness_graph}に示す.
+\end{itemize}
+このようにGAを適用した場合の手順をフローチャートにまとめれば下図\ref{ga_flow_chart_sub}になる.
+\begin{figure}[h]
+  \includegraphics[width=\textwidth]{figures/ga_flow_chart_sub.png}
+    \caption{GAの手順}\label{ga_flow_chart_sub}
+\end{figure}
+
+\subsection{GAで得られた結果の評価方法}\label{evaluate}
+GAアルゴリズムでは適用することで何かしらの結果は得られるが, それが大域的最適解であるということは保証されない. よって得られた結果に対して何らかの評価の方法が必要とされる. 本研究ではすでに数学的に解かれている均衡戦略が存在するため, その均衡戦略と比較して評価を行うこととなる.\par
+ Moldovanuの研究による戦略はSymmetryな均衡戦略である. よってユーザー全員がその戦略をとる時, どのユーザーも自分の戦略を変えたときにその効用を上げることができない. Moldovanuの戦略を持つユーザーの中にGAアルゴリズムで得られた戦略を持つユーザーを入れて, そのユーザーがMoldovanuの戦略をとったときとGAアルゴリズムの戦略をとったときとでの効用を比較する. その個体のGAによって得られた戦略が, MoldovanuのSymmetryな均衡戦略に近ければ近いほど, Moldovanuの戦略をとったときの効用に近づくはずである. n体のコンテストにおいて, 結果の戦略に対する評価の方法としては以下とした. 
+\begin{enumerate}
+\item 得られた戦略を持つ個体一体を$u_{1}$とし, Moldovanuによる戦略を持つn-1体を$u_{2}\sim u_{n}$とした組を用意する. また全ての個体がMoldovanuによる戦略を持つ組も用意して$\dot{u}_{1}\sim\dot{u}_{n}$とする. そしてそれら全ての個体の個々の効用を0とする.
+\item 一様分布から能力値$s_{i}$を0.5から1.0の範囲でランダムに発生させて, $u_{i}$と$\dot{u}_{i}$にそれを割り当てる. 
+\item それぞれの個体$u_{i}$と$\dot{u}_{i}$の戦略に変数$s_{i}$を代入して, 努力値$x_{i}$と$\dot{x}_{i}$をそれぞれ得る. 最大の努力値$x_{max}$となった個体$u_{max}$と$\dot{u}_{max}$を記録しておく. 能力値に努力値を乗算した値$s_{i}x_{i}$をそれぞれの個体値の適合度から減算する.
+\item 努力値最大の個体, $u_{max}$と$\dot{u}_{max}$の適合度にそれぞれ1を加算する.
+\item 2$\sim$4を20000回繰り返し, 得られた戦略一体$u_{1}$の効用を対応するもう片方の組のMoldovanuの戦略$\dot{u}_{1}$の効用と比較する.
+\end{enumerate}
+Moldovanuのコンテストのモデル上で均衡戦略を正しく評価するためには多くの回数を繰り返さなければならない. 少ない数では, 偶然確率分布からの能力値の割り当ての関係で, たまたま個体のMoldovanuによる戦略の効用がGAで得られた戦略の効用を下回ることがあるためである. 本研究では20000回としている. 
+
+\section{実験}\label{sec_experiment}
+\subsection{別の初期値発生方法による比較実験}
+ここでは比較実験として, Moldovanuの研究によるコンテストのモデル上において, 初期値をランダムに発生させた場合とBydeの研究の方法で発生させた場合との方法でどのような結果が得られるかを検証する. どちらの場合もランダムであるために\ref{ga_algorithm}節の単調減少を保持するための制約は加えることができないため, 交叉方法, また突然変異の範囲に単調減少を保持する制約はつけずに行った.
+\subsubsection{ランダムな初期値の場合}\label{random_experiment}
+本研究のGAにおける個体の発生のさせ方は\ref{initial_strategy}節で説明した. この理由は普通にランダムに値をもたせた場合は, 探索範囲が膨大で均衡戦略に必要な能力の低い時の情報が得られないために, 均衡戦略を求めることが困難であると述べたが, 比較するためにまずその場合の結果を下図に出す. 下図はn=10で交叉確率60\%, 突然変異確率20\%, コンテスト回数100回で10000回繰り返した時の結果である. 
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{figures/normal_result.png}
+    \caption{n=10の時の求まった戦略}\label{normal_result}
+\end{figure}
+\subsubsection{Bydeの研究による初期値の場合}\label{andrew_experiment}
+ここでは\ref{subsec_winner_pay}節で紹介したBydeの研究におけるGAの適用例をもとに信号を能力値, 入札額を努力値, 入札関数(\ref{winner_pay_bid_function})を戦略としてみて適用した. 均衡戦略において能力の低いときの出す努力値は小さいために, kは大きな値を取らなければ均衡解を表現するのに必要とされる値を十分に表現できないと考えられる. よって能力値0.5$\sim$1.0の間を10000感覚で区切って, ランダムに$(0,\frac{1}{10000},..., 2.5)$の中の値を離散値として割り当てて初期の個体を発生させた. この場合に10000回世代を繰り返した時の結果を下図に示す.
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{figures/andrew_result.png}
+    \caption{n=10の時の求まった戦略}\label{andrew_result}
+\end{figure}
+\subsection{本研究のGAアルゴリズム, また初期値の与え方による戦略}
+\subsubsection{パラメーターの調整}\label{tweak_parameter}
+本研究の実験において主にGAの結果に影響するパラメーターは人数nを除けば, 主に交叉の確率, 突然変異の確率, そして適合度評価におけるコンテストの繰り返す回数である. まずはn=10の時に交叉の確率, 突然変異の確率を変化させて実験を行った. またこれらのパラメーターを変化させるのはより良い個体を出現させる可能性が高めるパラメーターの組み合わせを見つけるためである. それぞれのパラメーターの時の評価は最後に得られた個体の適合度と全体の平均適合度の観点から比較を行った. 交叉, 突然変異それぞれの確率10\%$\sim$90\%の間で10\%ごとに変化させて全ての組合せを行った. その結果平均適合度が一番高かったのが交叉確率80\%, 突然変異確率80\%の時であったため, 以降の実験はそれらの確率で行うこととした.
+\begin{comment}
+GAにおいてはコンテスト形式の適合度評価でもたまたま劣る個体が残ることや最初の個体の発生の偏りなどいろいろな要因があり, 毎回同じ結果が保障されないため, 平均適合度, 最高適合度はそれぞれ50回行ったときの平均値をとって計算した. 結果においては平均適合度の高さを優先して考えることとする.
+\end{comment}
+\begin{comment}
+ 突然変異確率10\片方のパラメーターを固定して, もう片方を変化させて, その値が変化することによってどのような変化が起こるかを調べている. 下の表\ref{table_parameter_1}では交叉確率を固定して突然変異を変化させた時の結果であり, 表\ref{table_parameter_2}は突然変異を固定して交叉確率を変化させた時の結果である.
+\begin{table}[h]
+    \begin{center}
+      \caption{突然変異確率を変化させた時の適合度の変化}
+      \begin{tabular}{|c|c|c|c|} \hline
+        交叉 & 突然変異 & 平均適合度 & 最高適合度 \tabularnewline \hline 
+        0.6 & 0.1 & 0.0045 & 0.0916 \tabularnewline \hline 
+        0.6 & 0.2 & 0.0060 & 0.0791  \tabularnewline \hline 
+        0.6 & 0.3 & 0.0056 & 0.0866  \tabularnewline \hline 
+        0.6 & 0.4 & 0.0152 & 0.0858 \tabularnewline \hline  
+        0.6 & 0.5 & 0.0066 & 0.0692 \tabularnewline \hline  
+        0.6 & 0.6 & 0.0045 & 0.0709 \tabularnewline \hline  
+        0.6 & 0.7 & 0.0145 & 0.0943 \tabularnewline \hline  
+        0.6 & 0.8 & 0.0074 & 0.0875  \tabularnewline \hline  
+        0.6 & 0.9 & 0.0127 & 0.0868  \tabularnewline \hline  
+      \end{tabular}
+      \label{table_parameter_1}
+    \end{center}
+\end{table}
+\begin{table}[h]
+     \begin{center}
+      \caption{交叉確率を変化させた時の適合度の変化}
+      \begin{tabular}{|c|c|c|c|} \hline
+        交叉 & 突然変異 & 平均適合度 & 最高適合度 \tabularnewline \hline 
+        0.1 & 0.2 & 0.0033 & 0.0911 \tabularnewline \hline 
+        0.2 & 0.2 & 0.0024 & 0.0613 \tabularnewline \hline 
+        0.3 & 0.2 & 0.0085 & 0.1017 \tabularnewline \hline 
+        0.4 & 0.2 & 0.0161 & 0.0944 \tabularnewline \hline 
+        0.5 & 0.2 & 0.0076 & 0.0775 \tabularnewline \hline 
+        0.6 & 0.2 & 0.0060 & 0.0791 \tabularnewline \hline
+        0.7 & 0.2 & 0.0078 & 0.0796 \tabularnewline \hline
+        0.8 & 0.2 & 0.0124 & 0.0879 \tabularnewline \hline
+        0.9 & 0.2 & 0.0077 & 0.0796 \tabularnewline \hline
+      \end{tabular}
+      \label{table_parameter_2}
+      \end{center}
+\end{table}
+表\ref{table_parameter_1}, 表\ref{table_parameter_2}より平均適合度, 最高適合度がともに高い結果が得られている交叉確率40\%, 突然変異確率40\%の時に最良の結果が得られると考えられる. 次に適合度評価におけるコンテストの回数を変化させたときの平均適合度, 最高適合度を上記の交叉確率, 突然変異率で固定して行って調べた.
+\begin{table}[h]
+    \begin{center}
+      \caption{コンテスト回数を変化させた時の適合度の変化}
+      \begin{tabular}{|c|c|c|} \hline
+        コンテスト回数 & 平均適合度 & 最高適合度 \tabularnewline \hline 
+        100 & 0.0182 & 0.0799 \tabularnewline \hline 
+        200 & 0.0178 & 0.0734 \tabularnewline \hline 
+        300 & 0.0293 & 0.0809 \tabularnewline \hline 
+        400 & 0.0135 & 0.0476 \tabularnewline \hline 
+        500 & 0.0130 & 0.0414 \tabularnewline \hline 
+        600 & 0.0143 & 0.0476 \tabularnewline \hline 
+        700 & 0.0135 & 0.0387 \tabularnewline \hline
+        800 & 0.0154 & 0.0436 \tabularnewline \hline
+        900 & 0.0145 & 0.0381 \tabularnewline \hline
+        1000 & 0.0128 & 0.0334 \tabularnewline \hline
+      \end{tabular}
+      \label{table_parameter_3}
+    \end{center}
+\end{table}
+表\ref{table_parameter_3}より, コンテスト回数においては100回以上ではあまり違いが出るわけでなくその時の個体に依存するようであるので, コンテスト回数は100回で実験を行うこととする.
+\end{comment}
+\begin{comment}
+ 同じようにそれぞれ50回ずつ行い平均適合度, 最高適合度, 共に平均を取って行っている.
+\end{comment}
+
+\subsubsection{GAの適用結果}\label{ga_result_1}
+\ref{tweak_parameter}より, 交叉適用確率80\%, 突然変異適用確率80\%でGAをそれぞれn=10, 30, 50の時に適用することとした. ここでは終了条件を2000回としたが, まずはその妥当性を示すために, n=10の時に上記確率で5000回繰り返した時の平均適合度の変化を図\ref{fitness_graph}に示す. 
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{figures/fitness_graph.png}
+    \caption{n=10の時の平均適合度の変化}\label{fitness_graph}
+\end{figure}
+平均適合度は初めの方は高いところから始まり急激に減少して緩やかに上昇していっている. 1500回を超えたあたりから上昇が見られないため, 2000回世代を繰り返せば十分であると考えられる.\par
+次に実際にGAによって得られたそれぞれの戦略をグラフにしたのが図\ref{result_1}である.
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{figures/strategies_result_1.png}
+    \caption{n=10, 30, 50の時の求まった戦略}\label{result_1}
+\end{figure}
+\ref{evaluate}節の方法でGAで得られた結果を評価した場合, それぞれの効用の比較は下図\ref{evaluated_result_1}となった. この方法で行った場合, GAによる戦略の結果がMoldovanuの戦略による結果に近ければ近いほどそれはMoldovanuによる戦略と同等の結果を出したことになると考えれる.
+\begin{figure}[h]
+  \includegraphics[width=\textwidth]{figures/evaluated_result_1.png}
+    \caption{効用の比較}\label{evaluated_result_1}
+\end{figure}
+\subsubsection{バッジが2個の場合の戦略}
+次はバッジが二個の時で実験した. 適用するアルゴリズムは基本的には同じで, 違うのはコンテストにおいて一位だけでなく二位のワーカーにもバッジが与えられるという点である. Moldovanuは論文でこの時にどのようにバッジの価値を割り当てれば全体の効用が最大化できるかということに関して述べているが, 本研究においてはそこは本質ではないのでわかりやすく$V_{1}$=0.7, $V_{2}$=0.3と割り当てることにする. 図\ref{multi_graph_moldovanu}がバッジが二個で上述のようにバッジの価値を割り当てた場合のn=10, 30, 50の時のMoldovanuの戦略のグラフであり, 図\ref{result_2}がGAを適用して得られた戦略のグラフ, そしてバッジが二個の場合のコンテストでの効用の観点からの評価結果は図\ref{evaluated_result_2}である.
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{figures/multi_moldovanu_formulas.png}
+    \caption{バッジが二つの時のMoldovanuによる戦略}\label{multi_graph_moldovanu}
+\end{figure}
+\begin{figure}[h]
+    \includegraphics[width=\textwidth]{figures/strategies_result_2.png}
+    \caption{n=10, 30, 50の時の求まった戦略}\label{result_2}
+\end{figure}
+\begin{figure}[h]
+  \includegraphics[width=\textwidth]{figures/evaluated_result_2.png}
+    \caption{効用の比較}\label{evaluated_result_2}
+\end{figure}
+\section{考察}\label{sec_analysis}
+\subsection{比較実験で得られた結果の考察}
+n=10の時のランダムな初期値の与え方の時とBydeの研究における初期値の与え方の戦略のそれぞれでは実際の均衡戦略に近いものが得られていない. 図\ref{normal_result}と\ref{andrew_result}を見るように単調減少の戦略とならなかった. しかし全体としてはある程度収束していた. このようになる理由としては, まず戦略の範囲が広いことが挙げられる. 理想のMoldovanuの均衡戦略においては能力値が小さい時には1e-30, またはそれ以下となるくらいまで値が小さくなっている. これはnが大きくなればなるほど小さくなる. その上で能力の低いユーザーは勝つことができないために情報を得ることが難しいため, 能力が低いときほど出す努力値が小さくなるという均衡戦略の特徴を反映できなかったと考えられる. 
+\begin{comment}
+}n=10, 30, 50の時, それぞれバッジ1個, 2個の時ともにグラフのMoldovanuの戦略から大きく外れる結果となった. そして, 本来コンテストにおける戦略はnが変化することによって一人一人のユーザーの勝つ確率は変化するため, Moldovanuの戦略の変化図\ref{graph_moldovanu}と図\ref{multi_graph_moldovanu}に見られるように変化するはずであるが, n=10, 30, 50の時, ともに得られる戦略に変化が見られない. 
+ここで全ての個体がMoldovanuの戦略をとったとした時に本研究で行った適合度評価の方法で評価した平均適合度, 最高適合度をGAによって得られたもの戦略の場合とともに示す. n=10, 30, 50でバッジ一個と二個の時でそれぞれ調べている.
+\begin{table}[h]
+  \begin{minipage}[t]{.5\textwidth}
+    \begin{center} 
+      \caption{バッジ一個の時のMoldovanuによる戦略の場合}
+      \begin{tabular}{|c|c|c|} \hline
+        n & 平均適合度 & 最高適合度 \tabularnewline \hline 
+        10 & 0.0075 & 0.0234 \tabularnewline \hline 
+        30 & 0.0010 & 0.0135 \tabularnewline \hline 
+        50 & 0.0003 & 0.0111 \tabularnewline \hline 
+      \end{tabular}
+    \end{center}
+  \end{minipage}
+\hfill
+  \begin{minipage}[t]{.5\textwidth}
+   \caption{バッジ一個の時のGAによる戦略の場合}
+    \begin{center}
+      \begin{tabular}{|c|c|c|} \hline
+        n & 平均適合度 & 最高適合度 \tabularnewline \hline 
+        10 & 0.0599 & 0.0795 \tabularnewline \hline 
+        30 & 0.019254239 & 0.03588772 \tabularnewline \hline 
+        50 & 0.009 & 0.023 \tabularnewline \hline 
+      \end{tabular}
+    \end{center}
+   \end{minipage}  
+\end{table}
+\begin{table}[h]
+  \begin{minipage}[t]{.5\textwidth}
+   \caption{バッジ二個の時のMoldovanuによる戦略の
+    \begin{center}
+      \begin{tabular}{|c|c|c|} \hline
+        n & 平均適合度 & 最高適合度 \tabularnewline \hline 
+        10 & 0.0071 & 0.0165\tabularnewline \hline 
+        30 & 0.0008 & 0.0084  \tabularnewline \hline 
+        50 & 0.0004 & 0.0076 \tabularnewline \hline 
+      \end{tabular}
+    \end{center}
+  \end{minipage}
+\hfill
+  \begin{minipage}[t]{.5\textwidth}
+   \caption{バッジ二個の時のGAによる戦略の場合}
+    \begin{center}
+      \begin{tabular}{|c|c|c|} \hline
+        n & 平均適合度 & 最高適合度 \tabularnewline \hline 
+        10 & 0.0518 & 0.0766 \tabularnewline \hline 
+        30 & 0.0190 & 0.0296 \tabularnewline \hline 
+        50 & 0.0090 & 0.0200 \tabularnewline \hline 
+      \end{tabular}
+    \end{center}
+  \end{minipage}
+\end{table}
+この適合度の数値はGAによって得られた結果の実際に適合度が高いものを選ぶときは, 個体の戦略はほとんど収束しているのであるが, 全てが同じ戦略をとった時に\ref{ga_algorythm}節で説明した適合度評価方法で全体の適合度を評価すると, 全体の観点から見た時に, 個人の出す努力値がどんなに小さくても誰かが勝ってバッジを得るので, 努力値を出す量を少なくした方がコストが少なくなるために起こる結果であると考えられる. つまり, この適合度評価では全員が同じ戦略をとったとした時に, 出す努力値を少なくした方が結果として平均適合度, 最高適合度が高くなる. そのためにGAによる戦略がMoldovanuによる戦略に比べて平均適合度, 最高適合度両方で優れている. これより本研究で示した適合度評価では実際の均衡戦略を探索するのに十分でないことがわかった.\par
+これらの戦略が進化の過程で残る理由としては, 次の理由が考えられる. 進化の過程で個体の中に均衡戦略に近い戦略と努力値を多く出す戦略と努力値を小さく出す戦略をそれぞれ持つ個体が混合して存在した時に, 努力値を多く出し過ぎてしまう戦略を持つ個体はコンテストで毎回勝つが, 出し過ぎてしまうためバッジを得ても合計で負の効用になる. ここで均衡戦略に近い戦略を持つ個体はその努力値過多の戦略の存在のせいで勝つことができない. 勝つことができない時には均衡戦略に近い個体よりも努力値を小さくだす個体の方がコストが少ないために適合度が勝ってしまい結果的に努力値が小さい個体が残ると考えられる.
+\end{comment}
+\subsection{本研究のGAによって得られた結果の考察}
+まず図\ref{fitness_graph}のn=10の平均適合度の変化のグラフでは世代初期の方で高い値が出ているが, これはコンテストのc評価の方法では個人の出す努力値がどんなに小さくても誰かが勝ってバッジを得るので, 初期の段階では努力値をほとんど出さないような個体が多く存在するために全体としての効用としてのマイナスが少なくなるために起こると考えられる. しかしそのような努力値を出さないような個体は個人として勝つことがないので, 進化の過程で消えていくと考えられる. その理由により, 平均適合度の変化が最初に高く, 次に下がってからだんだんと上がっていくのは妥当であり, 収束後の平均適合度の高い個体が均衡戦略に近いと考えるのも妥当であると考えられる.\par
+n=10, 30, 50の時, それぞれバッジ一個, 二個の時ともに厳密には一致しないがグラフ上でMoldovanuの戦略に近いものが得られている. それぞれの時において数回実験を行ったがどの実験でも概ね同じような結果が得られた. \par
+効用の比較においてはMoldovanuの戦略は均衡戦略のため, それぞれ戦略をGAで得られた戦略に変えたときに個人の効用が上回ることはなかった.
+\begin{comment}
+それぞれの時の効用の差も全て\%以上一致するという
+\end{comment}
+それぞれの時の個体の効用においても近い結果が得られ, n=10, 30, 50の時の効用の変化の仕方も酷似している. バッジの価値が一定の元で行っているため, nが増えるごとに一人一人の得ることができる効用の期待値は下がる. よってn=10, 30, 50と増えるごとに各個体の戦略の効用は減少していく. よって図\ref{evaluated_result_1}と図\ref{evaluated_result_2}のような効用の変化は妥当であると考えられる.\par
+これらによってAll-Payオークションのモデル方式のコンテストモデルにおいて, 本研究のようにGAを用いれば均衡解に近いものが求まることが示されたといえる. \
+\begin{comment}
+効用の比較においてはn=10の時はバッジ一個の時, 二個の時ともにMoldovanuの戦略を大きく下回っている. GAによる戦略では能力値が高い時の出す努力値が足りないために出した分に見合う結果が得られず, コストばかりがかかってしまった結果だと考えれる. バッジ一個でn=50の時と,　バッジ二個でn=30の時はGAによる戦略の結果がMoldovanuによる戦略の結果を上回っている. あくまで分布からランダムに割り当てているため, 人数が多くなった時にMolodovanuの戦略の個体も勝つ回数が少なくなる. たまたま比較したMoldovanuの個体の発生した能力値に対する努力値では, GAによる戦略同様, 各コンテストで勝つことができなかったと考えられる. その場合GAによる戦略は勝てない時に対するコストのマイナスが少ない分, Moldovanuの個体の効用を上回ったのだと考えられる. 
+\end{comment}
+\section{おわりに}\label{sec_conclusion}
+本研究ではバッジシステムに基づくQ\&AサイトをAll-Payオークション方式のコンテストとしてモデル化し, そのサイト上のユーザーがどのように労力を投入すればバッジを効率的に得られるかという均衡戦略を求めるところにおいて, GAを適用し, 得られた結果を評価した. GAを適用して得られた結果を評価した理由は理論的に定式化することができないような複雑なモデル上での問題に対して, 定式化できなくても適用できるGAを用いることで結果が得ることはできるが, これが均衡回であることが保証されないという問題があるためである. 複雑なモデル上でGAの適用の解の均衡回であるかどうかの議論を可能にするためにまずはMoldovanuの論文で議論される簡単なモデル上で今すでに得られている均衡戦略と同じような解が得られるかどうかというところを検証した. そして, 個体の戦略においてユーザーの能力を能力値として入力, ユーザーの努力量を努力値として出力とし, 実際にコンテストを行う形で適合度評価した. そして, ただ単にランダムに個体の戦略に離散値を割り当てるのではなく, 個体への戦略の与え方を均衡戦略の特徴を反映する関数を離散化することによって与えることで均衡解がGAによって得られることを示した. これらにより複雑な条件設定において均衡戦略を求める際, GAの適用が有効であることを示している. 実際のバッジシステムに基づくQ\&Aサイトなどにおけるコンテストを応用できる場面での均衡戦略の獲得は今後の課題である.\par
+\begin{comment}
+しかし, \ref{sec_analysis}節で説明した理由などから均衡戦略を求めることができなかった. これは適合度評価の方法, また個体の戦略の出現が均衡解を求めるの十分な多様性をもたず局所解に陥る可能性が高かったのだと考えられる. \par
+本研究ではあくまでMoldovanuの研究におけるモデル上でGAの適用が妥当かどうかを調べているため, モデルとGAを適用後のより現実的にモデルを拡張しGAを適用するという部分ではこの\ref{subsec_winner_pay}節で紹介したBydeのモデルのように3種類のrisk-averse, risk-seeking, そしてrisk-neutralなユーザーの導入, 各バッジのユーザー一人一人に対する個人的な価値の割り当てなどといったことはそのまま適用できると考えられる. 実際のサイトでは本研究で仮定したrisk-neutralなユーザーだけでなく, このように色々なタイプのユーザーが存在し, バッジの価値も一人一人のユーザーにとって違うと考えられるからである. それらの内容を取り入れ, よりモデルを現実的に近づけるための数学的に定式化できない要因を踏まえて拡張した上でGAを適用することにより現実的モデルでの均衡戦略が求まることを期待したい.
+\end{comment}
+
+\acknowledgments				% 謝辞
+本研究を行うにあたり, 熱心なご指導, ご助言を受け賜りました松原繁夫准教授に厚く御礼申し上げます. またお忙しい中様々な御助言, 御協力を頂きました石田・松原研究室の皆様に心から感謝いたします.
+
+\nocite{*}
+\bibliographystyle{kuissort}			% 文献スタイルの指定
+\bibliography{dissertation}				% 参考文献の出力
+						% 付録の開始
+\begin{comment}
+\Appendix
+\end{comment}
+
+\end{document}
